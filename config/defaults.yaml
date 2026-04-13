@@ -1,0 +1,36 @@
+project:
+  name: glm51-runpod-r2-cold
+  mode: r2-cold
+  pod_name_prefix: glm51-runpod-r2-cold-r2-cold
+  model_root_base: /workspace/models
+  state_dir: .state
+  r2_prefix: glm51-runpod-r2-cold/r2-cold
+runpod:
+  compute_type: GPU
+  cloud_type: COMMUNITY
+  gpu_type_ids:
+    - NVIDIA H200
+  gpu_count: 8
+  container_disk_in_gb: 1000
+  volume_in_gb: null
+  support_public_ip: true
+  interruptible: false
+  global_networking: false
+  gpu_type_priority: custom
+  data_center_priority: availability
+  ports:
+    - 8000/http
+    - 22/tcp
+bootstrap:
+  auto_mirror_to_r2_default: true
+  completion_marker_dirname: .glm51-runpod-r2-cold
+  completion_marker_suffix: .complete.json
+vllm:
+  host: 0.0.0.0
+  port: 8000
+  served_model_name: glm-5.1-fp8
+  tensor_parallel_size: 8
+  tool_call_parser: glm47
+  reasoning_parser: glm45
+  enable_auto_tool_choice: true
+

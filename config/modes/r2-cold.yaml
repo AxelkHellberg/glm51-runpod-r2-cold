@@ -1,0 +1,11 @@
+mode: r2-cold
+notes:
+  startup_profile: cold
+  persistence_layer: cloudflare-r2-only
+  idle_cost_priority: highest
+runpod:
+  container_disk_in_gb: 1000
+bootstrap:
+  strategy: r2-manifest
+  restore_or_download: direct-to-final-model-path
+

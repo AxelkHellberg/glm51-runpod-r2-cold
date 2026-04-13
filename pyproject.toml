@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "glm51-runpod-r2-cold"
+version = "0.1.0"
+description = "Cost-aware, on-demand Runpod deployment workflow for GLM-5.1-FP8 with Cloudflare R2 cold storage."
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+keywords = ["runpod", "vllm", "llmops", "cloudflare-r2", "inference", "cost-optimization"]
+dependencies = [
+  "boto3>=1.35.0",
+  "botocore>=1.35.0",
+  "httpx>=0.28.0",
+  "huggingface_hub>=0.30.0",
+  "PyYAML>=6.0.2",
+  "python-dotenv>=1.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.5",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
