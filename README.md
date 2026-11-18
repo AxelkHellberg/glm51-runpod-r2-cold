@@ -121,8 +121,8 @@ make live-down
 
 ## Commands
 
-- `make sync`: install the local Python environment with `uv`
-- `make test`: run the fast unit test suite
+- `make sync`: install the local Python environment and the `dev` extra with `uv`
+- `make test`: install the `dev` extra if needed and run the fast unit test suite with the project Python
 - `make doctor`: validate env, Runpod access, and R2 access
 - `make build IMAGE_NAME=...`: build the Docker image locally
 - `make plan`: print the exact Runpod pod payload

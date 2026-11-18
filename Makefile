@@ -9,7 +9,7 @@ LIVE_ACTION_ACK ?=
 
 help:
 	@printf "Targets:\\n"
-	@printf "  make sync                     Install the local Python environment with uv\\n"
+	@printf "  make sync                     Install the local Python environment and test dependencies\\n"
 	@printf "  make test                     Run the fast local test suite\\n"
 	@printf "  make doctor                   Validate env, Runpod access, and R2 access\\n"
 	@printf "  make build IMAGE_NAME=...     Build the Docker image locally\\n"
@@ -20,10 +20,10 @@ help:
 	@printf "  make nuke-project CONFIRM=glm51-runpod-r2-cold\\n"
 
 sync:
-	uv sync
+	uv sync --extra dev
 
 test:
-	uv run pytest
+	uv run --extra dev python -m pytest
 
 doctor:
 	uv run python scripts/doctor.py
