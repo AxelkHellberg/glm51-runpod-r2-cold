@@ -67,6 +67,7 @@ What is still operationally constrained:
 - Automated tests cover the configuration and command-building logic, not live cloud execution.
 - Runpod capacity is an external dependency. Even correct requests can fail when the requested GPU shape is unavailable.
 - For this model size, “low idle cost” does not mean “low runtime cost.” The design saves money when idle, not necessarily while the pod is running.
+- Endpoint readiness polling accounts for request time and caps sleeps and request phase timeouts to its remaining budget. Its timeout and interval must be finite and greater than zero. HTTPX phase timeouts do not guarantee an overall wall-clock deadline for an in-flight request. The separate pod-status loop in `scripts/wait_for_pod.py` still counts polling intervals rather than total elapsed time.
 
 ## Project structure
 
