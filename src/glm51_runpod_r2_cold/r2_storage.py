@@ -106,9 +106,12 @@ class R2Storage:
         return result
 
     def delete_prefix(self, prefix: str) -> int:
+        if not prefix.strip().strip("/"):
+            raise ValueError("R2 cleanup requires a nonempty directory prefix")
+        directory_prefix = prefix.rstrip("/") + "/"
         paginator = self.client.get_paginator("list_objects_v2")
         keys: list[dict[str, str]] = []
-        for page in paginator.paginate(Bucket=self.bucket, Prefix=prefix):
+        for page in paginator.paginate(Bucket=self.bucket, Prefix=directory_prefix):
             for obj in page.get("Contents", []):
                 keys.append({"Key": obj["Key"]})
         deleted = 0

@@ -63,8 +63,10 @@ class RunpodAPI:
 
 
 def pod_matches_prefix(pod: dict[str, Any], prefix: str) -> bool:
+    if not prefix.strip():
+        return False
     name = (pod.get("name") or "").strip()
-    return bool(name) and name.startswith(prefix)
+    return name == prefix or name.startswith(f"{prefix}-")
 
 
 def pod_proxy_url(pod_id: str, port: int = 8000) -> str:
