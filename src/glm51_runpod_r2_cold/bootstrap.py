@@ -76,10 +76,13 @@ def _build_r2_client(config: AppConfig) -> R2Storage:
 
 
 def ensure_model_ready(config: AppConfig) -> dict[str, Any]:
-    if config.completion_marker_path.exists():
+    model_root = config.model_root
+    if config.completion_marker_path.exists() and model_root.is_dir() and any(model_root.iterdir()):
         return {"source": "local", "manifest": None, "model_root": str(config.model_root)}
 
-    model_root = config.model_root
+    # Invalidate a stale marker before rebuilding, including if a retry fails
+    # after leaving partial files in the model directory.
+    config.completion_marker_path.unlink(missing_ok=True)
     _clean_incomplete_model_root(model_root)
     model_root.mkdir(parents=True, exist_ok=True)
 
