@@ -135,7 +135,8 @@ make live-down
 
 - No Runpod templates are created or used.
 - No Runpod network volumes are created or used.
-- Cleanup targets only pod names that match the project prefix.
+- Project pod selection accepts the exact configured name or names beginning with that name followed by `-`, including generated timestamp names. Blank prefixes cannot select pods.
+- R2 cleanup uses the configured project directory followed by `/`, so similarly named neighboring directories are excluded. Blank or root prefixes are rejected.
 - Local runtime state lives under `.state/` and is not committed.
 - The R2 manifest is written after uploads complete, so partial mirrors are not exposed as valid caches.
 
