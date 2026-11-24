@@ -138,6 +138,7 @@ make live-down
 - Cleanup targets only pod names that match the project prefix.
 - Local runtime state lives under `.state/` and is not committed.
 - The R2 manifest is written after uploads complete, so partial mirrors are not exposed as valid caches.
+- R2 restores require a nonempty file list and verify each downloaded file's byte count before writing the local completion marker. This does not verify file checksums.
 
 ## Portfolio note
 
