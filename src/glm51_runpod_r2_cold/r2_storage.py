@@ -42,14 +42,27 @@ class R2Storage:
         return json.loads(body)
 
     def download_manifest_tree(self, manifest: dict[str, Any], artifact_prefix: str, target_root: Path) -> None:
+        files = manifest.get("files")
+        if not isinstance(files, list) or not files:
+            raise ValueError("R2 manifest must contain a nonempty files list.")
+        for item in files:
+            expected_size = item.get("size_bytes")
+            if type(expected_size) is not int or expected_size < 0:
+                raise ValueError(f"R2 manifest file {item['relative_path']!r} must have a nonnegative integer size_bytes.")
+
         target_root.mkdir(parents=True, exist_ok=True)
-        files = manifest.get("files", [])
         for item in files:
             relative_path = item["relative_path"]
             key = f"{artifact_prefix}/{relative_path}"
             target_path = target_root / relative_path
             target_path.parent.mkdir(parents=True, exist_ok=True)
             self.client.download_file(self.bucket, key, str(target_path))
+            actual_size = target_path.stat().st_size
+            if actual_size != item["size_bytes"]:
+                raise RuntimeError(
+                    f"R2 restore size mismatch for {relative_path!r}: "
+                    f"expected {item['size_bytes']} bytes, got {actual_size}."
+                )
 
     def upload_model_tree(
         self,
