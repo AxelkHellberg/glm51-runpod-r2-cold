@@ -131,6 +131,8 @@ make live-down
 - `make live-down`: destroy the tracked pod
 - `make nuke-project CONFIRM=glm51-runpod-r2-cold`: delete only project-owned pods, mirrored R2 objects, and local state
 
+The readiness step in `make live-up` measures elapsed time while polling Pod status. `scripts/wait_for_pod.py` accepts positive `--timeout-seconds` and `--poll-interval-seconds` values. Pod request timeouts and sleeps use the remaining budget, endpoint polling receives only the time left, and a late response is not recorded as ready. Endpoint polling retains its separate timing loop, and HTTP transport timeouts apply to individual phases, so elapsed execution can exceed this budget.
+
 ## Safety
 
 - No Runpod templates are created or used.
