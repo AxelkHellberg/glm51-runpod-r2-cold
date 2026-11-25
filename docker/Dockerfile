@@ -11,7 +11,8 @@ RUN apt-get update \
 
 COPY pyproject.toml README.md /app/
 COPY src /app/src
-RUN pip install --no-cache-dir .
+# Runtime paths resolve config, scripts, and state relative to the source tree.
+RUN pip install --no-cache-dir -e .
 
 COPY config /app/config
 COPY scripts /app/scripts
