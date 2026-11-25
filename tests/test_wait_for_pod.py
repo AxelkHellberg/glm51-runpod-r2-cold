@@ -31,7 +31,10 @@ class Clock:
         self.elapsed += seconds
 
 
-def arrange_wait(monkeypatch, module, *, timeout, interval, responses, endpoint_cost=0):
+def arrange_wait(
+    monkeypatch, module, *, timeout, interval, responses, endpoint_cost=0,
+    port=8000, saved_state=None,
+):
     clock = Clock()
     requests = []
     endpoint_calls = []
@@ -65,11 +68,13 @@ def arrange_wait(monkeypatch, module, *, timeout, interval, responses, endpoint_
     monkeypatch.setattr(module, "time", clock)
     monkeypatch.setattr(module, "RunpodAPI", FakeAPI)
     monkeypatch.setattr(module, "load_app_config", lambda: SimpleNamespace(
-        runpod=SimpleNamespace(api_key="fake-key"), vllm=SimpleNamespace(port=8000),
+        runpod=SimpleNamespace(api_key="fake-key"), vllm=SimpleNamespace(port=port),
     ))
-    monkeypatch.setattr(module, "load_active_pod_state", lambda: {
-        "pod_id": "test-pod", "proxy_base_url": "https://example.invalid",
-    })
+    if saved_state is None:
+        saved_state = {
+            "pod_id": "test-pod", "proxy_base_url": "https://test-pod-8000.proxy.runpod.net",
+        }
+    monkeypatch.setattr(module, "load_active_pod_state", lambda: saved_state)
     monkeypatch.setattr(module, "write_active_pod_state", lambda state: None)
     monkeypatch.setattr(module, "write_endpoint_state", saved_endpoints.append)
     monkeypatch.setattr(module, "print_json", lambda state: None)
@@ -89,9 +94,43 @@ def test_endpoint_receives_only_budget_left_after_pod_request(
     wait_script.main()
 
     assert requests == [("test-pod", {"timeout": request_timeout})]
-    assert endpoint_calls == [("https://example.invalid", timeout - 0.75)]
+    assert endpoint_calls == [("https://test-pod-8000.proxy.runpod.net", timeout - 0.75)]
     assert len(saved) == 1
     assert clock.elapsed == 1.75
+
+
+@pytest.mark.parametrize("port,saved_url", [
+    (9000, "https://test-pod-8000.proxy.runpod.net"),
+    (8000, None),
+    (9000, None),
+    (8000, "https://test-pod-8000.proxy.runpod.net"),
+    (9000, "https://test-pod-9000.proxy.runpod.net"),
+])
+def test_endpoint_uses_current_snapshot_url(monkeypatch, wait_script, port, saved_url):
+    saved_state = {"pod_id": "test-pod"}
+    if saved_url is not None:
+        saved_state["proxy_base_url"] = saved_url
+    _, requests, endpoint_calls, saved = arrange_wait(
+        monkeypatch, wait_script, timeout=10, interval=2, responses=[("RUNNING", 1)],
+        port=port, saved_state=saved_state,
+    )
+    active_snapshots = []
+    printed_endpoints = []
+    monkeypatch.setattr(wait_script, "write_active_pod_state", active_snapshots.append)
+    monkeypatch.setattr(wait_script, "print_json", printed_endpoints.append)
+
+    wait_script.main()
+
+    expected_url = f"https://test-pod-{port}.proxy.runpod.net"
+    assert requests == [("test-pod", {"timeout": 10})]
+    assert active_snapshots[0]["proxy_base_url"] == expected_url
+    assert endpoint_calls == [(expected_url, 9)]
+    assert saved == [{
+        "base_url": expected_url,
+        "models": {"data": [{"id": "test-model"}]},
+        "pod_id": "test-pod",
+    }]
+    assert printed_endpoints == saved
 
 
 def test_slow_pod_request_cannot_begin_endpoint_polling_after_expiry(monkeypatch, wait_script):

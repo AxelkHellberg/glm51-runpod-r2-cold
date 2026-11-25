@@ -29,7 +29,6 @@ def main() -> None:
         raise SystemExit("No active Pod state was found. Run `make live-up` first.")
 
     pod_id = state["pod_id"]
-    base_url = state["proxy_base_url"]
     deadline = time.monotonic() + args.timeout_seconds
     with RunpodAPI(config.runpod.api_key or "") as api:
         while True:
@@ -43,6 +42,7 @@ def main() -> None:
             if remaining <= 0:
                 break
             if snapshot.get("desired_status") == "RUNNING":
+                base_url = snapshot["proxy_base_url"]
                 models = wait_for_http_ready(base_url, timeout_seconds=remaining)
                 if time.monotonic() >= deadline:
                     break
