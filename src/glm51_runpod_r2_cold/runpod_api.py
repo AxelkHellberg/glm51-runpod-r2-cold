@@ -40,7 +40,9 @@ class RunpodAPI:
     def list_pods(self) -> list[dict[str, Any]]:
         return self._request("GET", "/pods")
 
-    def get_pod(self, pod_id: str) -> dict[str, Any]:
+    def get_pod(self, pod_id: str, *, timeout: float | None = None) -> dict[str, Any]:
+        if timeout is not None:
+            return self._request("GET", f"/pods/{pod_id}", timeout=timeout)
         return self._request("GET", f"/pods/{pod_id}")
 
     def create_pod(self, payload: dict[str, Any]) -> dict[str, Any]:
